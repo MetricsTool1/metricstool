@@ -11,7 +11,7 @@ import gzip
 import logging
 
 
-LOGGERNAME = 'MyExample'
+LOGGERNAME = 'MetricsTool'
 logging.basicConfig(format='%(asctime)s - %(name)s - %(module)s:%(lineno)d- %(levelname)s - %(message)s', datefmt="%Y-%m-%dT%H:%M:%S%z")
 logger = logging.getLogger(LOGGERNAME)
 
@@ -194,7 +194,10 @@ def parse(logfile, stopWhenLoopDetected=False):
     logger.info('Progress: reading %s is %.02f%%', logfile, 100*currentpos/fullsize)
   return results, counters
 
-def parse_and_plot(logfile, plotfile):
+ # create a new plot
+
+
+def parse_and_plot(logfile, plotfile, args):
   results, counters = parse(logfile, stopWhenLoopDetected=False)
   data = dict()
   data[Timestamp_key] = list(map(convert_timestamp, results.keys()))
@@ -202,28 +205,33 @@ def parse_and_plot(logfile, plotfile):
     if k in args.metrics:
       data[k] = unzip_data(results, k)# what is the format of data??
 
+  placeholders = {
+      'WIDTH': args.width,
+      'HEIGHT': args.height,
+      'BACKGROUNDCOLOUR': args.background,
+      'DOTCOLOUR': args.dotcolour,
+      'TIMESTAMP': args.formattimestamp,
+      'DATASET': data
+  }
 
-  # create a new plot
-
-placeholders = {
-  'WIDTH': args.width,
-  'HEIGHT': args.height,
-  'BACKGROUNDCOLOUR': args.background,
-  'DOTCOLOUR': args.dotcolour,
-  'TIMESTAMP': args.formattimestamp,
-  'DATASET': data
-}
-
-  #  update placeholders in template??
-  with open(getTemplate(), 'r') as source_file, plotfile:
-    for line in source_file.readlines():#load line by line in memory??
-      for placeholder, value in placeholders.items:
-        if placeholder in line:
-          line = line.replace(placeholder, value)
-
-      plotfile.writelines(line)
-
-
+  # update placeholders in template
+  templatefname = getTemplate()
+  try:
+    source_file = open(logfile, 'r', encoding='utf-8')
+  except Exception as e:
+    logger.error('Error opening the template file %s: %s', templatefname, e)
+  else:
+    try:
+      plot_file = open(templatefname, 'r', encoding='utf-8')
+    except Exception as e:
+      logger.error('Error opening the output file %s: %s', plotfile, e)
+    else:
+      with source_file, plot_file:
+        for line in source_file.readlines():#load line by line in memory??
+          for placeholder, value in placeholders.items():
+            if placeholder in line:
+              line = line.replace(placeholder, value)
+            plot_file.write(line)
 
 def loadRegexes(regexes_filename):
   """
@@ -278,7 +286,7 @@ if __name__ == "__main__":
     else:
       plotfname = logfname.parent / "{0}{1}{2}".format(args.prefix, logfname.name, args.suffix)
       try:
-        parse_and_plot(logfname, plotfname)
+        parse_and_plot(logfname, plotfname, args)
       except FileNotFoundError:
         logger.error('Error opening the file %s', fname)
         continue
