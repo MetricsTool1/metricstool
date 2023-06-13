@@ -29,29 +29,30 @@
 
 <script type="text/javascript">
 
-      data = [
-        [
-        {date:"2022-12-30 07:00:42",value:16777216.0},
-        {date:"2022-12-30 04:58:28",value:10977.28}
-          ],
-        [
-        {date:"2022-12-27 14:04:55",value:1638.4},
-        {date:"2022-12-30 12:49:34",value:4030.464}
-          ]
-        ]
+  data = @DATASET@
+  /*[
+    [
+    {date:"2022-12-30 07:00:42",value:16777216.0},
+    {date:"2022-12-30 04:58:28",value:10977.28}
+      ],
+    [
+    {date:"2022-12-27 14:04:55",value:1638.4},
+    {date:"2022-12-30 12:49:34",value:4030.464}
+      ]
+    ]*/
 
-       var parseTime = d3.timeParse("%Y-%m-%d %H:%M:%S");
+   var parseTime = d3.timeParse("%Y-%m-%d %H:%M:%S");
 
-      data.forEach(function(series) {
-  series.forEach(function(d) {
-    d.date = parseTime(d.date);
+  data.forEach(function(series) {
+      series.forEach(function(d) {
+      d.date = parseTime(d.date);
+      });
   });
-});
 
 
   var margin = {top: 20, right: 20, bottom: 30, left: 30},
     width = 800 - margin.left - margin.right,
-    height = 800 - margin.top - margin.bottom;
+    height = 600 - margin.top - margin.bottom;
       
     // append the SVG object to the body of the page
   const svg = d3.select("body").selectAll("svg")
