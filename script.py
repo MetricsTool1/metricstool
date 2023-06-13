@@ -11,7 +11,7 @@ import gzip
 import logging
 
 
-LOGGERNAME = 'MetricsTool'
+LOGGERNAME = 'MyExample'
 logging.basicConfig(format='%(asctime)s - %(name)s - %(module)s:%(lineno)d- %(levelname)s - %(message)s', datefmt="%Y-%m-%dT%H:%M:%S%z")
 logger = logging.getLogger(LOGGERNAME)
 
@@ -217,12 +217,12 @@ def parse_and_plot(logfile, plotfile, args):
   # update placeholders in template
   templatefname = getTemplate()
   try:
-    source_file = open(logfile, 'r', encoding='utf-8')
+    source_file = open(templatefname, 'r', encoding='utf-8')
   except Exception as e:
     logger.error('Error opening the template file %s: %s', templatefname, e)
   else:
     try:
-      plot_file = open(templatefname, 'r', encoding='utf-8')
+      plot_file = open(plotfile, 'w', encoding='utf-8')
     except Exception as e:
       logger.error('Error opening the output file %s: %s', plotfile, e)
     else:
