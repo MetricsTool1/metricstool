@@ -9,9 +9,10 @@ import argparse
 import pathlib
 import gzip
 import logging
+import json
 
 
-LOGGERNAME = 'MyExample'
+LOGGERNAME = 'MetricsTool'
 logging.basicConfig(format='%(asctime)s - %(name)s - %(module)s:%(lineno)d- %(levelname)s - %(message)s', datefmt="%Y-%m-%dT%H:%M:%S%z")
 logger = logging.getLogger(LOGGERNAME)
 
@@ -200,7 +201,7 @@ def parse(logfile, stopWhenLoopDetected=False):
 def parse_and_plot(logfile, plotfile, args):
   results, counters = parse(logfile, stopWhenLoopDetected=False)
   data = dict()
-  data[Timestamp_key] = list(map(convert_timestamp, results.keys()))
+  #data[Timestamp_key] = list(map(convert_timestamp, results.keys()))
   for k in counters:
     if k in args.metrics:
       data[k] = unzip_data(results, k)# what is the format of data??
@@ -211,7 +212,7 @@ def parse_and_plot(logfile, plotfile, args):
       'BACKGROUNDCOLOUR': args.background,
       'DOTCOLOUR': args.dotcolour,
       'TIMESTAMP': args.formattimestamp,
-      'DATASET': data
+      'DATASET': json.dumps(data)
   }
 
   # update placeholders in template
@@ -231,7 +232,7 @@ def parse_and_plot(logfile, plotfile, args):
           for placeholder, value in placeholders.items():
             if placeholder in line:
               line = line.replace(placeholder, value)
-            plot_file.write(line)
+          plot_file.write(line)
 
 def loadRegexes(regexes_filename):
   """
