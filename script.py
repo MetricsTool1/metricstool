@@ -1,4 +1,4 @@
- #!/usr/bin/env python3
+#!/usr/bin/env python3
 import time
 from datetime import datetime as dt
 import sys
@@ -9,9 +9,10 @@ import argparse
 import pathlib
 import gzip
 import logging
+import json
 
 
-LOGGERNAME = 'MyExample'
+LOGGERNAME = 'MetricsTool'
 logging.basicConfig(format='%(asctime)s - %(name)s - %(module)s:%(lineno)d- %(levelname)s - %(message)s', datefmt="%Y-%m-%dT%H:%M:%S%z")
 logger = logging.getLogger(LOGGERNAME)
 
@@ -25,7 +26,7 @@ dot_colours = ['blue', 'orange', 'white', 'red', 'purple']
 default_dot_colours_index = 2
 
 default_timestamp_format= 'monthname'
-timestamp_format_options = {'american':'%m/%d', 'european':'%d/%m',default_timestamp_format: '%b-%d'}
+timestamp_format_options = {'american':'%-m/%-d', 'european':'%-d/%-m',default_timestamp_format: '%-d/%-m'}
 
 Timestamp_key = 'Timestamp'
 Timestamp_Group_Name = Timestamp_key
@@ -115,10 +116,6 @@ def regex_extract(line, regex):
     return None
   return dict(m.groupdict().items())
 
-def unzip_data(data, field_name):
-  return [val.get(field_name, None) for val in data.values()]
-
-
 def zopen(fname):
   """
     Wrapper around open and gzip.open.
@@ -194,36 +191,53 @@ def parse(logfile, stopWhenLoopDetected=False):
     logger.info('Progress: reading %s is %.02f%%', logfile, 100*currentpos/fullsize)
   return results, counters
 
-def parse_and_plot(logfile, plotfile):
+ # create a new plot
+
+
+def parse_and_plot(logfile, plotfile, args):
   results, counters = parse(logfile, stopWhenLoopDetected=False)
-  data = dict()
-  data[Timestamp_key] = list(map(convert_timestamp, results.keys()))
-  for k in counters:
-    if k in args.metrics:
-      data[k] = unzip_data(results, k)# what is the format of data??
+  #We need to keep a map of desired counters pointing back to their order
+  #This makes it easier to select the correct list in data
+  selectedcounters = {m:i for i,m in enumerate(args.metrics)}
 
+  #Allocate data to contain a list for each selected metric
+  data = [list() for _ in range(len(args.metrics))]
 
-  # create a new plot
+  for timestamp,datapoints in results.items():
+    for counter,value in datapoints.items():
+      #Select the correct list using the counter to index mapping. If the counter is not a selected one, this will return None
+      dataindex = selectedcounters.get(counter)
+      #If the counter is selected, and the dataindex is not None, add the value to the corresponding list
+      if dataindex is not None:
+        data[dataindex].append({'date':timestamp, 'value':value})
+    
+  placeholders = {
+      '@WIDTH@': json.dumps(args.width),
+      '@HEIGHT@': json.dumps(args.height),
+      '@BACKGROUNDCOLOUR@': args.background,
+      '@DOTCOLOUR@': args.dotcolour,
+      '@TIMESTAMP@': args.formattimestamp,
+      '@DATASET@': json.dumps(data)
+  }
 
-placeholders = {
-  'WIDTH': args.width,
-  'HEIGHT': args.height,
-  'BACKGROUNDCOLOUR': args.background,
-  'DOTCOLOUR': args.dotcolour,
-  'TIMESTAMP': args.formattimestamp,
-  'DATASET': data
-}
-
-  #  update placeholders in template??
-  with open(getTemplate(), 'r') as source_file, plotfile:
-    for line in source_file.readlines():#load line by line in memory??
-      for placeholder, value in placeholders.items:
-        if placeholder in line:
-          line = line.replace(placeholder, value)
-
-      plotfile.writelines(line)
-
-
+  # update placeholders in template
+  templatefname = getTemplate()
+  try:
+    source_file = open(templatefname, 'r', encoding='utf-8')
+  except Exception as e:
+    logger.error('Error opening the template file %s: %s', templatefname, e)
+  else:
+    try:
+      plot_file = open(plotfile, 'w', encoding='utf-8')
+    except Exception as e:
+      logger.error('Error opening the output file %s: %s', plotfile, e)
+    else:
+      with source_file, plot_file:
+        for line in source_file.readlines():#load line by line in memory??
+          for placeholder, value in placeholders.items():
+            if placeholder in line:
+              line = line.replace(placeholder, value)
+          plot_file.write(line)
 
 def loadRegexes(regexes_filename):
   """
@@ -278,7 +292,7 @@ if __name__ == "__main__":
     else:
       plotfname = logfname.parent / "{0}{1}{2}".format(args.prefix, logfname.name, args.suffix)
       try:
-        parse_and_plot(logfname, plotfname)
+        parse_and_plot(logfname, plotfname, args)
       except FileNotFoundError:
         logger.error('Error opening the file %s', fname)
         continue
