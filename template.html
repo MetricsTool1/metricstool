@@ -1,25 +1,23 @@
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="utf-8" />
+    <meta charset="utf-8">
 
     <!-- what title to put?? a standard one or one depends on user requirement? -->
     <title>D3: Time axis, prettier</title>
 
     <!-- Load d3.js -->
-    <script
-      type="text/javascript"
-      src="http://d3js.org/d3.v7.min.js"
-      charset="utf-8"></script>
+    <script type="text/javascript" src="http://d3js.org/d3.v7.min.js" charset="utf-8"></script>
     <style type="text/css">
-      /* No style rules here yet */
+      /* No style rules here yet */   
       .axis path,
-      .axis line {
+      .axis line{
         stroke: whitesmoke;
         shape-rendering: crispEdges;
       }
 
-      .axis text {
+      .axis text{
         font-family: Optima, Futura, sans-serif;
         font-weight: bold;
         font-size: 8px;
@@ -28,170 +26,168 @@
     </style>
   </head>
   <body>
-    <script type="text/javascript">
-        data = [[{ date: "2022-12-30T14:22:34.203Z", value: "0" }]];
-        /*[
-      [
-      {date:"2022-12-30 07:00:42",value:16777216.0},
-      {date:"2022-12-30 04:58:28",value:10977.28}
-        ],
-      [
-      {date:"2022-12-27 14:04:55",value:1638.4},
-      {date:"2022-12-30 12:49:34",value:4030.464}
+
+<script type="text/javascript">
+
+
+data = [
+        [
+        {date:"2022-12-30 07:00:42",value:16777216.0},
+        {date:"2022-12-30 04:58:28",value:10977.28}
+          ],
+        [
+        {date:"2022-12-27 14:04:55",value:1638.4},
+        {date:"2022-12-30 12:49:34",value:4030.464}
+          ]
         ]
-      ]*/
 
-        var parseTime = d3.timeParse("%Y-%m-%dT%H:%M:%S.%LZ");
+       var parseTime = d3.timeParse("%Y-%m-%d %H:%M:%S");
 
-        data.forEach(function (series) {
-          series.forEach(function (d) {
-            d.date = parseTime(d.date);
-            d.value = parseFloat(d.value);
-          });
-        });
+      data.forEach(function(series) {
+  series.forEach(function(d) {
+    d.date = parseTime(d.date);
+  });
+});
 
-<<<<<<< HEAD
-        var margin = { top: 20, right: 20, bottom: 30, left: 30 ,padding:7},
-=======
-        var margin = { top: 20, right: 20, bottom: 30, left: 30 },
->>>>>>> d081605ac273cdf59c11dd4e977d5316da5b73a1
-          width = @WIDTH@ - margin.left - margin.right,
-          height = @HEIGHT@ - margin.top - margin.bottom;
 
-        // append the SVG object to the body of the page
-        const svg = d3
-          .select("body")
-          .selectAll("svg")
-          .data(data)
-          .join("svg")
+  var margin = {top: 20, right: 20, bottom: 30, left: 30},
+    width = 460 - margin.left - margin.right,
+    height = 600 - margin.top - margin.bottom;
+      
+    // append the SVG object to the body of the page
+ 
+  
+    var key = d3.select("body")
+           .selectAll("div")
+           .data(data)
+           .enter()
+           .append("div")
+               .attr("id",function (d, i) {
+                console.log(i)
+                    return "div" + i;
+                    
+                });
+               
+               
+           
+  const svg = key.selectAll("svg")
+            .data(data).join("svg")
 
-          .attr("width", width + margin.left + margin.right)
-          .attr("height", height + margin.top + margin.bottom)
-          .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-        //create background color
-<<<<<<< HEAD
-          const bounds = svg.append("g")
-                      .attr("transform", `translate(${margin.left}, ${margin.top})`)
-        const bg = bounds
-          .append("rect")
-          .attr('x',0)
-          .attr('y', 0)
-          .attr('width', width-margin.left-margin.right)
-          .attr('height',height-margin.top-margin.bottom)
-=======
-        const bg = svg
-          .append("rect")
-          .attr('x',0)
-          .attr('y', 0)
-          .attr('width', width)
-          .attr('height',height)
->>>>>>> d081605ac273cdf59c11dd4e977d5316da5b73a1
-          .attr('fill', "@BACKGROUNDCOLOUR@");
-
-        //scale
-        var startDate = d3.min(data.flat(), (d) => d.date);
-
-        var endDate = d3.max(data.flat(), (d) => d.date);
-
-        x = d3
-          .scaleUtc()
-          .domain([
-            d3.timeDay.offset(startDate, -1), //startDate minus one day, for padding
-            d3.timeDay.offset(endDate, 1), //endDate plus one day, for padding
-          ])
-<<<<<<< HEAD
-          .range([margin.padding, width - margin.padding]);
-=======
-          .range([margin.left, width - margin.right]);
->>>>>>> d081605ac273cdf59c11dd4e977d5316da5b73a1
-        y = d3
-          .scaleLinear()
-          .domain([0, d3.max(data.flat(), (d) => d.value)])
-          .nice()
-<<<<<<< HEAD
-          .range([height- margin.padding, margin.padding]);
-
-        xAxis = (g, x) =>
-          g.attr("transform", `translate(0,${height - margin.bottom})`)
-          .call(
-=======
-          .range([height - margin.bottom, margin.top]);
-
-        xAxis = (g, x) =>
-          g.attr("transform", `translate(0,${height - margin.bottom})`).call(
->>>>>>> d081605ac273cdf59c11dd4e977d5316da5b73a1
-            d3
-              .axisBottom(x)
-              .ticks(width / 80)
-              .tickSizeOuter(0)
-<<<<<<< HEAD
-             .tickFormat(d3.utcFormat("%-m/%-d"))//update timestamp
-              )//dateformat
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .attr("transform",
+          "translate(" + margin.left + "," + margin.top + ")")
+          .attr("id",function (d, i) {
+            console.log(i)
+           
+                    return "svg" + i;
           
-=======
-          );
->>>>>>> d081605ac273cdf59c11dd4e977d5316da5b73a1
+                  
+                });
 
-        yAxis = (g, y) =>
-          g
-            .attr("transform", `translate(${margin.left},0)`)
-            .call(d3.axisLeft(y).ticks(null, "s"))
-            .call((g) => g.select(".domain").remove())
-            .call((g) =>
-              g
-                .select(".tick:last-of-type text")
-                .clone()
-                .attr("x", 3)
-                .attr("text-anchor", "start")
-                .attr("font-weight", "bold")
-            );
+                for(i=0;i<data.length;i++)
+                {
+                  divid = "div" + i
+                var ancestor = document.getElementById(divid),
+    descendents = ancestor.getElementsByTagName('*');
+    
+    var j, e, d;
+for (j = 0; j < descendents.length; ++j) {
+    e = descendents[j];
+    if(e.id != "svg" + i)
+    {e.remove(); }     
+}
 
-        // Add a clipPath: everything out of this area won't be drawn.
-        var clip = svg
-          .append("clipPath")
+
+
+                }
+
+
+     
+      {
+        d3.select("#div0").select("#svg1").remove();
+        d3.select("#div1").select("#svg0").remove();
+
+      }         
+                
+        
+   //scale
+
+    var startDate = d3.min(data.flat(), d => d.date);
+
+    var endDate = d3.max(data.flat(), d => d.date);
+
+x = d3.scaleUtc()
+    .domain([
+                d3.timeDay.offset(startDate, -1),  //startDate minus one day, for padding
+                d3.timeDay.offset(endDate, 1)   //endDate plus one day, for padding
+              ])
+    .range([margin.left, width - margin.right])
+y = d3.scaleLinear()
+    .domain([0, d3.max(data.flat(), d => d.value)]).nice()
+    .range([height - margin.bottom, margin.top])
+
+xAxis = (g, x) => g
+    .attr("transform", `translate(0,${height - margin.bottom})`)
+    .call(d3.axisBottom(x).ticks(width / 80).tickSizeOuter(0))
+
+yAxis = (g, y) => g
+    .attr("transform", `translate(${margin.left},0)`)
+    .call(d3.axisLeft(y).ticks(null, "s"))
+    .call(g => g.select(".domain").remove())
+    .call(g => g.select(".tick:last-of-type text").clone()
+        .attr("x", 3)
+        .attr("text-anchor", "start")
+        .attr("font-weight", "bold"))
+       
+
+
+ // Add a clipPath: everything out of this area won't be drawn.
+      var clip = svg.append("clipPath")
           .attr("id", "clip")
-          .append("rect")
-          .attr("width", width - margin.left - margin.right)
-          .attr("height", height - margin.top - margin.bottom)
+          .append("rect")          
+          .attr("width", width - margin.left - margin.right )
+          .attr("height", height - margin.top - margin.bottom )
           .attr("x", margin.left)
           .attr("y", margin.top);
 
-        // Create the scatter variable: where both the circles and the brush take place
-        var scatter = svg.append("g").attr("clip-path", "url(#clip)");
-        // draw cicrcles
-        const gDot = scatter
+      // Create the scatter variable: where both the circles and the brush take place
+      var scatter = svg.append('g')
+        .attr("clip-path", "url(#clip)") 
+        ;
 
-          .selectAll("circle")
-          .data((d) => d)
-          .join("circle")
-          .attr("cx", (d) => x(d.date))
-          .attr("cy", (d) => y(d.value))
-          .attr("r", 5)
-          .style('fill', '@DOTCOLOUR@');
+ 
+// draw cicrcles
+  const gDot = scatter
+            
+             .selectAll("circle").data(d => d) .join("circle")
 
-        //draw axes
-        const gX = svg.append("g").attr("class", "axis axis--x").call(xAxis, x);
-        const gY = svg.append("g").attr("class", "axis axis--y").call(yAxis, y);
+      .attr("cx", d => x(d.date))
+      .attr("cy", d => y(d.value))
+      .attr("r", 5);
 
-        //zoom
+//draw axes
+const gX = svg.append("g").attr("class", "axis axis--x").call(xAxis,x);
+  const gY = svg.append("g").attr("class", "axis axis--y").call(yAxis,y);
 
-        svg.call(
-          d3
-            .zoom()
-            .extent([
-              [margin.left, 0],
-              [width - margin.right, height],
-            ])
-            .scaleExtent([1, 32])
-            .on("zoom", zoomed)
-        );
 
-        function zoomed({ transform }) {
-          gDot.attr("transform", transform);
-          gX.call(xAxis, transform.rescaleX(x));
-          gY.call(yAxis, transform.rescaleY(y));
-        }
+ //zoom
+
+  svg.call(d3.zoom()
+      .extent([[margin.left, 0], [width - margin.right, height]])
+      .scaleExtent([1, 32])
+      .on("zoom", zoomed));
+
+  function zoomed({transform}) {
+ 
+    gDot.attr("transform", transform);
+    gX.call(xAxis, transform.rescaleX(x));
+    gY.call(yAxis, transform.rescaleY(y));
+  }
+
+
+
+ 
     </script>
   </body>
 </html>
