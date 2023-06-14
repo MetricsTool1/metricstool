@@ -26,7 +26,7 @@ dot_colours = ['blue', 'orange', 'white', 'red', 'purple']
 default_dot_colours_index = 2
 
 default_timestamp_format= 'monthname'
-timestamp_format_options = {'american':'%m/%d', 'european':'%d/%m',default_timestamp_format: '%b-%d'}
+timestamp_format_options = {'american':'%-m/%-d', 'european':'%-d/%-m',default_timestamp_format: '%-d/%-m'}
 
 Timestamp_key = 'Timestamp'
 Timestamp_Group_Name = Timestamp_key
@@ -212,8 +212,8 @@ def parse_and_plot(logfile, plotfile, args):
         data[dataindex].append({'date':timestamp, 'value':value})
     
   placeholders = {
-      '@WIDTH@': args.width,
-      '@HEIGHT@': args.height,
+      '@WIDTH@': json.dumps(args.width),
+      '@HEIGHT@': json.dumps(args.height),
       '@BACKGROUNDCOLOUR@': args.background,
       '@DOTCOLOUR@': args.dotcolour,
       '@TIMESTAMP@': args.formattimestamp,
