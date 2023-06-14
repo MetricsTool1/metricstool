@@ -29,7 +29,7 @@
 
 <script type="text/javascript">
 
-  data = @DATASET@
+  data = [[{"date": "2022-12-30T14:22:34.203Z", "value": "0"}]]
   /*[
     [
     {date:"2022-12-30 07:00:42",value:16777216.0},
@@ -41,11 +41,12 @@
       ]
     ]*/
 
-   var parseTime = d3.timeParse("%Y-%m-%d %H:%M:%S");
+   var parseTime = d3.timeParse("%Y-%m-%dT%H:%M:%S.%LZ");
 
   data.forEach(function(series) {
       series.forEach(function(d) {
-      d.date = parseTime(d.date);
+      d.date = parseTime(d.date)
+      d.value = parseFloat(d.value)
       });
   });
 
