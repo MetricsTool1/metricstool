@@ -27,20 +27,19 @@
   </head>
   <body>
 
-<script type="text/javascript">
+    <script type="text/javascript">
+        data = @DATASET@;
+        /*[
+      [
+      {date:"2022-12-30 07:00:42",value:16777216.0},
+      {date:"2022-12-30 04:58:28",value:10977.28}
+        ],
+      [
+      {date:"2022-12-27 14:04:55",value:1638.4},
+      {date:"2022-12-30 12:49:34",value:4030.464}
 
-
-data = [
-        [
-        {date:"2022-12-30 07:00:42",value:16777216.0},
-        {date:"2022-12-30 04:58:28",value:10977.28}
-          ],
-        [
-        {date:"2022-12-27 14:04:55",value:1638.4},
-        {date:"2022-12-30 12:49:34",value:4030.464}
-          ]
         ]
-
+*/
        var parseTime = d3.timeParse("%Y-%m-%d %H:%M:%S");
 
       data.forEach(function(series) {
@@ -48,6 +47,11 @@ data = [
     d.date = parseTime(d.date);
   });
 });
+
+
+        var margin = { top: 20, right: 20, bottom: 30, left: 30 ,padding:7},
+          width = @WIDTH@ - margin.left - margin.right,
+          height = @HEIGHT@ - margin.top - margin.bottom;
 
 
   var margin = {top: 20, right: 20, bottom: 30, left: 30},
@@ -73,6 +77,7 @@ data = [
   const svg = key.selectAll("svg")
             .data(data).join("svg")
 
+
             .attr("width", width + margin.left + margin.right)
             .attr("height", height + margin.top + margin.bottom)
             .attr("transform",
@@ -85,30 +90,68 @@ data = [
                   
                 });
 
+         
+
+        //create background color
+          const bounds = svg.append("g")
+                      .attr("transform", `translate(${margin.left}, ${margin.top})`)
+        const bg = bounds
+          .append("rect")
+          .attr('x',0)
+          .attr('y', 0)
+          .attr('width', width-margin.left-margin.right)
+          .attr('height',height-margin.top-margin.bottom)
+          .attr('fill', "@BACKGROUNDCOLOUR@");
+
+        //scale
+        var startDate = d3.min(data.flat(), (d) => d.date);
+
+        var endDate = d3.max(data.flat(), (d) => d.date);
+
+        x = d3
+          .scaleUtc()
+          .domain([
+            d3.timeDay.offset(startDate, -1), //startDate minus one day, for padding
+            d3.timeDay.offset(endDate, 1), //endDate plus one day, for padding
+          ])
+          .range([margin.padding, width - margin.padding]);
+        y = d3
+          .scaleLinear()
+          .domain([0, d3.max(data.flat(), (d) => d.value)])
+          .nice()
+          .range([height- margin.padding, margin.padding]);
+
+        xAxis = (g, x) =>
+          g.attr("transform", `translate(0,${height - margin.bottom})`)
+          .call(
+            d3
+              .axisBottom(x)
+              .ticks(width / 80)
+              .tickSizeOuter(0)
+             .tickFormat(d3.utcFormat("%-m/%-d"))//update timestamp
+              )//dateformat
+          
+
                 for(i=0;i<data.length;i++)
                 {
                   divid = "div" + i
                 var ancestor = document.getElementById(divid),
     descendents = ancestor.getElementsByTagName('*');
     
-    var j, e, d;
+                    var j, e, d;
+
 for (j = 0; j < descendents.length; ++j) {
     e = descendents[j];
     if(e.id != "svg" + i)
-    {e.remove(); }     
-}
-
-
+    {
+        e.remove();
+        j = j - 1;
+    }     
+                                          }
 
                 }
 
-
-     
-      {
-        d3.select("#div0").select("#svg1").remove();
-        d3.select("#div1").select("#svg0").remove();
-
-      }         
+       
                 
         
    //scale
