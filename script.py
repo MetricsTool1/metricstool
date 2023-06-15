@@ -281,19 +281,33 @@ if __name__ == "__main__":
   loadRegexes(args.regexes)
 
   for fname in args.files:
-    logger.info('Processing input file %s', fname)
-    logfname = pathlib.Path(os.path.normpath(fname))
-    if args.list:
-      _, counters = parse(logfname, stopWhenLoopDetected=True)
-      sys.stdout.write(f'List of counters detected in input file {fname}\n')
-      for counter in counters:
-        sys.stdout.write(f'{counter}\n')
-      sys.stdout.write('\n')
-    else:
-      plotfname = logfname.parent / "{0}{1}{2}".format(args.prefix, logfname.name, args.suffix)
-      try:
-        parse_and_plot(logfname, plotfname, args)
-      except FileNotFoundError:
-        logger.error('Error opening the file %s', fname)
-        continue
-      logger.info('Processed file %s. Plot results stored in %s',logfname, plotfname)
+        logFile = "LogFile_" + str(fname) + ".log"
+        with open(logFile, 'w') as logfile:
+            try:
+                if ".gz" in str(fname) or ".txt" in str(fname):
+                    logger.info('Processing input file %s', fname)
+                    logfile.write('Processing input file:' + fname + '\n')
+                    logfname = pathlib.Path(os.path.normpath(fname))
+                    if args.list:
+                        _, counters = parse(logfname, stopWhenLoopDetected=True)
+                        sys.stdout.write(f'List of counters detected in input file {fname}\n')
+                        for counter in counters:
+                            sys.stdout.write(f'{counter}\n')
+                        sys.stdout.write('\n')
+                    else:
+                        plotfname = logfname.parent / "{0}{1}{2}".format(args.prefix, logfname.name, args.suffix)
+                        try:
+                            parse_and_plot(logfname, plotfname, args)
+                        except FileNotFoundError:
+                            logger.error('File not found: %s', fname)
+                            logfile.write('File not found:' + fname + '\n')
+                            continue
+
+                        logger.info('Processed file %s. Plot results stored in %s', logfname, plotfname)
+                        logfile.write('Processed file:' + str(logfname) + " " + 'Plot results stored in:' + str(plotfname) + '\n')
+                else:
+                    logger.error('Unsupported File Type: %s', fname)
+                    logfile.write('Unsupported File Type:' + fname + '\n')
+            except Exception as e:
+                    logger.error(traceback.format_exc())
+                    logfile.write('Error:' + traceback.format_exc())
