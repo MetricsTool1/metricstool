@@ -10,6 +10,7 @@ import pathlib
 import gzip
 import logging
 import json
+import traceback
 
 
 LOGGERNAME = 'MetricsTool'
@@ -20,7 +21,7 @@ plot_extension = '.html'
 plot_prefix = 'metricsplot-'
 default_background = 'black'
 
-Background = ['black','blue']
+Background = ['black','blue','beige','grey','red']
 default_background_index = 1
 dot_colours = ['blue', 'orange', 'white', 'red', 'purple']
 default_dot_colours_index = 2
@@ -36,7 +37,7 @@ MetricsUnit_Group_Name = 'MetricsUnit' # what is metricsunit?
 Timestamp_Regex = r'^(?P<' + Timestamp_Group_Name + r'>\[?\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d\d\d)?[A-Z]?)\]?'# what is (? for
 
 def getTemplate() :
-    template_fname = 'template.html'# Plot template
+    template_fname = 'templategit.html'# Plot template
     self = pathlib.Path(__file__)
     directory = self.parent
     template = directory/template_fname
@@ -99,6 +100,7 @@ def getArgs():
 
 def convert_timestamp(ts):
   return datetime.datetime.strptime(ts, '%Y-%m-%dT%H:%M:%S.%f%z')
+
 
 
 regexes = [
@@ -209,6 +211,8 @@ def parse_and_plot(logfile, plotfile, args):
       dataindex = selectedcounters.get(counter)
       #If the counter is selected, and the dataindex is not None, add the value to the corresponding list
       if dataindex is not None:
+        timestamp = convert_timestamp(timestamp)
+        timestamp = str(timestamp).split('.', 1)[0]
         data[dataindex].append({'date':timestamp, 'value':value})
     
   placeholders = {
@@ -217,7 +221,7 @@ def parse_and_plot(logfile, plotfile, args):
       '@BACKGROUNDCOLOUR@': args.background,
       '@DOTCOLOUR@': args.dotcolour,
       '@TIMESTAMP@': args.formattimestamp,
-      '@DATASET@': json.dumps(data)
+      '@DATASET@': json.dumps(data, indent=4, sort_keys=True, default=str)
   }
 
   # update placeholders in template

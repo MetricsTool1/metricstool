@@ -25,7 +25,7 @@
       }
     </style>
   </head>
-  <body>
+  <body style="background-color:@BACKGROUNDCOLOUR@;">
 
     <script type="text/javascript">
         data = @DATASET@;
@@ -49,14 +49,14 @@
 });
 
 
-        var margin = { top: 20, right: 20, bottom: 30, left: 30 ,padding:7},
-          width = @WIDTH@ - margin.left - margin.right,
-          height = @HEIGHT@ - margin.top - margin.bottom;
+        //var margin = { top: 20, right: 20, bottom: 30, left: 30 ,padding:7},
+          //width = @WIDTH@ - margin.left - margin.right,
+          //height = @HEIGHT@ - margin.top - margin.bottom;
 
 
   var margin = {top: 20, right: 20, bottom: 30, left: 30},
-    width = 460 - margin.left - margin.right,
-    height = 600 - margin.top - margin.bottom;
+    width = @WIDTH@ - margin.left - margin.right,
+    height = @HEIGHT@ - margin.top - margin.bottom;
       
     // append the SVG object to the body of the page
  
@@ -207,7 +207,9 @@ yAxis = (g, y) => g
 
       .attr("cx", d => x(d.date))
       .attr("cy", d => y(d.value))
-      .attr("r", 5);
+      .attr("r", 5)
+      .attr("fill", "@DOTCOLOUR@");
+
 
 //draw axes
 const gX = svg.append("g").attr("class", "axis axis--x").call(xAxis,x);
