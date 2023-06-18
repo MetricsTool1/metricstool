@@ -57,22 +57,37 @@
   var margin = {top: 20, right: 20, bottom: 30, left: 30},
     width = @WIDTH@ - margin.left - margin.right,
     height = @HEIGHT@ - margin.top - margin.bottom;
-      
+    
     // append the SVG object to the body of the page
  
-  
+    var countersList = "@COUNTER@"
+    var countersListArray = countersList.split(",");
+
+    
+
+    var counterNames =   d3.select("body").selectAll("p").data(data).enter().append("p").style("color","Green")
+    .style("position","relative")
+    .style("text-align", "center")
+    .style("font-weight", "Bold")
+    .style("top", function (d, i) { return (@HEIGHT@ * i) + 50 + "px"}
+    )
+    .text(function (d, i) {
+                    return "Counter " + (i+1) + ": " + countersListArray[i];
+                    
+           })
+
     var key = d3.select("body")
            .selectAll("div")
            .data(data)
            .enter()
            .append("div")
-               .attr("id",function (d, i) {
-                console.log(i)
+           .attr("id",function (d, i) {
                     return "div" + i;
                     
                 });
-               
-               
+
+       
+             
            
   const svg = key.selectAll("svg")
             .data(data).join("svg")
@@ -89,6 +104,8 @@
           
                   
                 });
+
+   
 
          
 

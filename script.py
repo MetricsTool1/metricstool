@@ -221,7 +221,8 @@ def parse_and_plot(logfile, plotfile, args):
       '@BACKGROUNDCOLOUR@': args.background,
       '@DOTCOLOUR@': args.dotcolour,
       '@TIMESTAMP@': args.formattimestamp,
-      '@DATASET@': json.dumps(data, indent=4, sort_keys=True, default=str)
+      '@DATASET@': json.dumps(data, indent=4, sort_keys=True, default=str),
+      '@COUNTER@': args.metrics
   }
 
   # update placeholders in template
@@ -240,7 +241,7 @@ def parse_and_plot(logfile, plotfile, args):
         for line in source_file.readlines():#load line by line in memory??
           for placeholder, value in placeholders.items():
             if placeholder in line:
-              line = line.replace(placeholder, value)
+              line = line.replace(placeholder, str(value))
           plot_file.write(line)
 
 def loadRegexes(regexes_filename):
@@ -248,6 +249,7 @@ def loadRegexes(regexes_filename):
     Given a filename containing regexes
     load them into the list if they compile
     ignore them if they fail to compile
+    ignore non-existing file or Null
     ignore non-existing file or Null
   """
   if regexes_filename:
