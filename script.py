@@ -20,12 +20,13 @@ plot_extension = '.html'
 plot_prefix = 'metricsplot-'
 default_background = 'black'
 
-Background = ['black','blue']
+Background = ['black','blue','white','grey','beige','#ADD2C2','#A7D3A6','#374A67','#616283','#7286A0','#AA767C','#D6A184','#FEC196']
 default_background_index = 1
-dot_colours = ['blue', 'orange', 'white', 'red', 'purple']
+dot_colours = ['blue','orange','white','red','green','black','#59594A','#BEGE46','#63474D','#FFA686','#CDE7BO','#BEGE46']
 default_dot_colours_index = 2
 
 default_timestamp_format= 'monthname'
+#do we need to add timeformat 12/Dez
 timestamp_format_options = {'american':'%-m/%-d', 'european':'%-d/%-m',default_timestamp_format: '%-d/%-m'}
 
 Timestamp_key = 'Timestamp'
@@ -216,8 +217,9 @@ def parse_and_plot(logfile, plotfile, args):
       '@HEIGHT@': json.dumps(args.height),
       '@BACKGROUNDCOLOUR@': args.background,
       '@DOTCOLOUR@': args.dotcolour,
-      '@TIMESTAMP@': args.formattimestamp,
-      '@DATASET@': json.dumps(data)
+      '@TIMESTAMP@': timestamp_format_options.get(args.formattimestamp),
+      '@DATASET@': json.dumps(data),
+      '@COUNTERS@':json.dumps(args.metrics)
   }
 
   # update placeholders in template
