@@ -25,12 +25,20 @@
         font-size: 8px;
         fill: black;
       }
+
+      .div-class{
+        position: relative;
+      }
+
+     
     </style>
   </head>
   <body>
  
 
     <script type="text/javascript">
+
+      
         data = @DATASET@;
         /*[
       [
@@ -91,10 +99,19 @@
         .enter()
         .append("div")
         .attr("class", "div-class") // Optionally, add a CSS class to the divs
-        .attr("title", function(d) { return d; })
-        .text(function(d) { return d; })
+        //.attr("title", function(d) { return d; })
+        //.text(function(d) { return d; })
+        .style("position", "relative")
         .style("text-align", "center")
-        .style("font-weight", "Bold");
+        .style("font-weight", "Bold");//
+
+        const divs = d3
+          .selectAll("div.div-class")//
+          .append("div")
+          .attr("class", "title-class") // Optionally, add a CSS class to the title div
+      .text(function(d) { return d; })
+
+        
 
         // append the SVG object to the body of the page
         const svg = d3
