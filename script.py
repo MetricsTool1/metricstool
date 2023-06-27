@@ -18,10 +18,10 @@ logger = logging.getLogger(LOGGERNAME)
 
 plot_extension = '.html'
 plot_prefix = 'metricsplot-'
-default_background = 'black'
+
 
 Background = ['black','blue','white','grey','beige','#ADD2C2','#A7D3A6','#374A67','#616283','#7286A0','#AA767C','#D6A184','#FEC196']
-default_background_index = 1
+default_background_index = 0
 dot_colours = ['blue','orange','white','red','green','black','#59594A','#BEGE46','#63474D','#FFA686','#CDE7BO','#BEGE46']
 default_dot_colours_index = 2
 
@@ -75,14 +75,10 @@ def getArgs():
   parser.add_argument('files', action='store', nargs='+',
                       help='file(s) to parse')
   parser.add_argument('-B', '--background', action='store', required=False, choices=Background,
-                      default=default_background, help='Choose your chart background')
+                      default=Background[default_background_index], help='Choose your chart background')
   parser.add_argument('-C', '--dotcolour', action='store', required=False, choices=dot_colours,
                       default=dot_colours[default_dot_colours_index],
                       help='Choose your dot colour')
-
-  # Argument for storage option??
-  parser.add_argument('-o', '--outputdir', action='store', type=pathlib.Path, required=False,
-                      help='Provide a directory if you want the output to be stored separately')
 
   parser.add_argument('-L', '--formattimestamp', action='store',required=False, choices=timestamp_format_options.keys(), default= default_timestamp_format, help ='Choose your timestamp format')
   metricsG = parser.add_mutually_exclusive_group(required=True)
