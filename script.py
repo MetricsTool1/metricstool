@@ -10,6 +10,7 @@ import pathlib
 import gzip
 import logging
 import json
+import statistics
 
 
 LOGGERNAME = 'MetricsTool'
@@ -81,10 +82,11 @@ def getArgs():
                       help='Choose your dot colour')
 
   parser.add_argument('-L', '--formattimestamp', action='store',required=False, choices=timestamp_format_options.keys(), default= default_timestamp_format, help ='Choose your timestamp format')
-  metricsG = parser.add_mutually_exclusive_group(required=True)
-  metricsG.add_argument('-l', '--list', action='store_true', required=False,
+  parser.add_argument('-l', '--list', action='store_true', required=False,
                         help='List all the metrics detected in the supplied file(s)')
-  metricsG.add_argument('-m', '--metrics', action='append', required=False,
+  parser.add_argument('-m', '--metrics', action='append', required=False,
+                        help='Name of metric to be plotted, can be repeated multiple times')
+  parser.add_argument('-M', '--match', action='store', required=False,
                         help='Name of metric to be plotted, can be repeated multiple times')
   parser.add_argument('-r', '--regexes', action='store', type=pathlib.Path,
                       help='file containing additional regexes.')
@@ -193,12 +195,20 @@ def parse(logfile, stopWhenLoopDetected=False):
 
 def parse_and_plot(logfile, plotfile, args):
   results, counters = parse(logfile, stopWhenLoopDetected=False)
+  #IF no metrics were supplied, we assume we need to plot all of them
+  metrics = args.metrics or counters
+  #And then we filter them by match if supplied
+  metrics = [metric for metric in metrics if match is None or match.search(metric) is not None]
+
   #We need to keep a map of desired counters pointing back to their order
   #This makes it easier to select the correct list in data
-  selectedcounters = {m:i for i,m in enumerate(args.metrics)}
+  selectedcounters = {m:i for i,m in enumerate(metrics)}
 
   #Allocate data to contain a list for each selected metric
-  data = [list() for _ in range(len(args.metrics))]
+  data = [list() for _ in range(len(metrics))]
+  #thresholds = []
+
+
 
   for timestamp,datapoints in results.items():
     for counter,value in datapoints.items():
@@ -207,6 +217,12 @@ def parse_and_plot(logfile, plotfile, args):
       #If the counter is selected, and the dataindex is not None, add the value to the corresponding list
       if dataindex is not None:
         data[dataindex].append({'date':timestamp, 'value':value})
+  
+  thresholds = [ (statistics.mean(l) + 2* statistics.pvariance(l)) for l in [ [float(x.get('value')) for x in c] for c in data]]
+
+  #thresholds = [ l for l in [ [float(x.get('value')) for x in c] for c in data]]
+
+
     
   placeholders = {
       '@WIDTH@': json.dumps(args.width),
@@ -215,7 +231,9 @@ def parse_and_plot(logfile, plotfile, args):
       '@DOTCOLOUR@': args.dotcolour,
       '@TIMESTAMP@': timestamp_format_options.get(args.formattimestamp),
       '@DATASET@': json.dumps(data),
-      '@COUNTERS@':json.dumps(args.metrics)
+      '@COUNTERS@':json.dumps(metrics),
+      '@THRESHOLDS@': json.dumps(thresholds)
+
   }
 
   # update placeholders in template
@@ -278,6 +296,16 @@ if __name__ == "__main__":
     logging.getLogger().setLevel(logging.INFO)
   loadRegexes(args.regexes)
 
+  if args.match:
+    try:
+      match = re.compile(args.match)
+    except Exception as e:
+      logger.error('Supplied match %s is invalid: %s', args.match, e)
+      sys.exit(1)
+  else:
+    match = None
+  if args.list and args.metrics:
+    logger.warning('Both --list and --metrics were specified, --metrics will be ignored')
   for fname in args.files:
     logger.info('Processing input file %s', fname)
     logfname = pathlib.Path(os.path.normpath(fname))
@@ -285,7 +313,8 @@ if __name__ == "__main__":
       _, counters = parse(logfname, stopWhenLoopDetected=True)
       sys.stdout.write(f'List of counters detected in input file {fname}\n')
       for counter in counters:
-        sys.stdout.write(f'{counter}\n')
+        if match is None or match.search(counter) is not None:
+          sys.stdout.write(f'{counter}\n')
       sys.stdout.write('\n')
     else:
       plotfname = logfname.parent / "{0}{1}{2}".format(args.prefix, logfname.name, args.suffix)
