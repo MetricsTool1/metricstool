@@ -50,6 +50,7 @@
       {date:"2022-12-30 12:49:34",value:4030.464}
         ]
       ]*/
+        dotcolour = '@DOTCOLOUR@'
 
         var parseTime = d3.timeParse("%Y-%m-%dT%H:%M:%S.%LZ");
        
@@ -164,6 +165,7 @@
               .tickSizeOuter(0)
              .tickFormat(multiFormat)
               )
+          .call(g => g.select(".domain").remove())
           
 
         yAxis = (g, y) =>
@@ -192,6 +194,8 @@
 
         // Create the scatter variable: where both the circles and the brush take place
         var scatter = svg.append("g").attr("clip-path", "url(#clip)");
+
+
         // draw cicrcles
         const gDot = scatter
 
@@ -201,7 +205,24 @@
           .attr("cx", (d) =>x(d.date))
           .attr("cy", (d) => y(d.value))
           .attr("r", 0.5)
-          .style('fill', '@DOTCOLOUR@');
+          .attr('fill', dotcolour)  
+
+          // draw lines
+
+          // Calculate the average of y values
+var averageY = @THRESHOLDS@;
+
+// Create reference line
+line = scatter.append("line")
+line.data(averageY)
+line.attr("x1", 0)
+  .attr("y1", d=>y(d))
+  .attr("x2", width)
+  .attr("y2", d=>y(d))
+  .style("stroke", dotcolour)
+  .style("stroke-width", 0.5)
+  .style("stroke-dasharray", "2,2");
+
 
         //draw axes
         const gX = svg.append("g").attr("class", "axis axis--x").call(xAxis, x);
@@ -222,6 +243,7 @@
 
         function zoomed({ transform }) {
           gDot.attr("transform", transform);
+          line.attr("transform", transform);
           gX.call(xAxis, transform.rescaleX(x));
           gY.call(yAxis, transform.rescaleY(y));
         }
