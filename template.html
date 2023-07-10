@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
 
     <!-- what title to put?? a standard one or one depends on user requirement? -->
-    <title>D3: Time axis, prettier</title>
+    <title>@TITLE@</title>
 
     <!-- Load d3.js -->
     <script
@@ -34,7 +34,8 @@
     </style>
   </head>
   <body>
- 
+    <h1>@TITLE@</h1>
+
 
     <script type="text/javascript">
 
@@ -51,6 +52,7 @@
         ]
       ]*/
         dotcolour = '@DOTCOLOUR@'
+        linecolour = '@LINECOLOUR@'
 
         var parseTime = d3.timeParse("%Y-%m-%dT%H:%M:%S.%LZ");
        
@@ -205,23 +207,23 @@
           .attr("cx", (d) =>x(d.date))
           .attr("cy", (d) => y(d.value))
           .attr("r", 0.5)
-          .attr('fill', dotcolour)  
+          .attr('fill', d => d.colour)  
 
           // draw lines
 
           // Calculate the average of y values
-var averageY = @THRESHOLDS@;
+          var averageY = @THRESHOLDS@;
 
-// Create reference line
-line = scatter.append("line")
-line.data(averageY)
-line.attr("x1", 0)
-  .attr("y1", d=>y(d))
-  .attr("x2", width)
-  .attr("y2", d=>y(d))
-  .style("stroke", dotcolour)
-  .style("stroke-width", 0.5)
-  .style("stroke-dasharray", "2,2");
+          // Create reference line
+          line = scatter.append("line")
+          line.data(averageY)
+          line.attr("x1", 0)
+            .attr("y1", d=>y(d))
+            .attr("x2", width)
+            .attr("y2", d=>y(d))
+            .style("stroke", linecolour)
+            .style("stroke-width", 0.25)
+            .style("stroke-dasharray", "2,2");
 
 
         //draw axes
