@@ -25,6 +25,9 @@ Background = ['black','blue','white','grey','beige','#ADD2C2','#A7D3A6','#374A67
 default_background_index = 0
 dot_colours = ['blue','orange','white','red','green','black','#59594A','#BEGE46','#63474D','#FFA686','#CDE7BO','#BEGE46']
 default_dot_colours_index = 2
+default_max_dot_colours_index = 1
+default_line_colours_index = 1
+
 
 default_timestamp_format= 'monthname'
 #do we need to add timeformat 12/Dez
@@ -80,6 +83,13 @@ def getArgs():
   parser.add_argument('-C', '--dotcolour', action='store', required=False, choices=dot_colours,
                       default=dot_colours[default_dot_colours_index],
                       help='Choose your dot colour')
+  parser.add_argument('-c', '--maxcolour', action='store', required=False, choices=dot_colours,
+                      default=dot_colours[default_max_dot_colours_index],
+                      help='Colour for the dots at max value')
+
+  parser.add_argument('-i', '--linecolour', action='store', required=False, choices=dot_colours,
+                      default=dot_colours[default_line_colours_index],
+                      help='Choose your line colour')
 
   parser.add_argument('-L', '--formattimestamp', action='store',required=False, choices=timestamp_format_options.keys(), default= default_timestamp_format, help ='Choose your timestamp format')
   parser.add_argument('-l', '--list', action='store_true', required=False,
@@ -88,6 +98,8 @@ def getArgs():
                         help='Name of metric to be plotted, can be repeated multiple times')
   parser.add_argument('-M', '--match', action='store', required=False,
                         help='Name of metric to be plotted, can be repeated multiple times')
+  parser.add_argument('-t', '--title', action='store', required=False, default='Metrics plot',
+                        help='Title of the report')
   parser.add_argument('-r', '--regexes', action='store', type=pathlib.Path,
                       help='file containing additional regexes.')
   parser.epilog = 'The format of the regex file is one regex per line, without the timestamp part (will be added automatically). Each new regex needs to contain at least the following groups: ' + ','.join([MetricsName_Group_Name, MetricsValue_Group_Name]) + ' and this optional group: ' + MetricsUnit_Group_Name
@@ -217,7 +229,17 @@ def parse_and_plot(logfile, plotfile, args):
       #If the counter is selected, and the dataindex is not None, add the value to the corresponding list
       if dataindex is not None:
         data[dataindex].append({'date':timestamp, 'value':value})
-  
+  for counterdata in data:
+    #Calculate the max value for this counter data
+    maxvalue = max([float(x.get('value')) for x in counterdata])
+    #And update the colours for each value in this counter:
+    for datapoint in counterdata:
+      if float(datapoint.get('value')) < maxvalue:
+        datapoint['colour'] = args.dotcolour
+      else:
+        datapoint['colour'] = args.maxcolour
+
+
   thresholds = [ (statistics.mean(l) + 2* statistics.pvariance(l)) for l in [ [float(x.get('value')) for x in c] for c in data]]
 
   #thresholds = [ l for l in [ [float(x.get('value')) for x in c] for c in data]]
@@ -229,10 +251,13 @@ def parse_and_plot(logfile, plotfile, args):
       '@HEIGHT@': json.dumps(args.height),
       '@BACKGROUNDCOLOUR@': args.background,
       '@DOTCOLOUR@': args.dotcolour,
+      '@MAXCOLOUR@': args.maxcolour,
+      '@LINECOLOUR@': args.linecolour,
       '@TIMESTAMP@': timestamp_format_options.get(args.formattimestamp),
       '@DATASET@': json.dumps(data),
       '@COUNTERS@':json.dumps(metrics),
-      '@THRESHOLDS@': json.dumps(thresholds)
+      '@THRESHOLDS@': json.dumps(thresholds),
+      '@TITLE@': args.title
 
   }
 
