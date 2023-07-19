@@ -11,6 +11,7 @@ import gzip
 import logging
 import json
 import statistics
+import pytz
 
 
 LOGGERNAME = 'MetricsTool'
@@ -94,12 +95,19 @@ def getArgs():
   parser.add_argument('-L', '--formattimestamp', action='store',required=False, choices=timestamp_format_options.keys(), default= default_timestamp_format, help ='Choose your timestamp format')
   parser.add_argument('-l', '--list', action='store_true', required=False,
                         help='List all the metrics detected in the supplied file(s)')
+  parser.add_argument('-s', '--starttime', action='store', required=False,type=convert_timestamp,
+                        help='exclude all the logs with timestamps before startdate')
+  parser.add_argument('-e', '--endtime', action='store', required=False,type=convert_timestamp,
+                        help='exclude all the logs with timestamps after enddate')
+  parser.add_argument('-T', '--timezone', action='store', required=False,
+                        help='convert zulu timezone to local timezone')
   parser.add_argument('-m', '--metrics', action='append', required=False,
                         help='Name of metric to be plotted, can be repeated multiple times')
   parser.add_argument('-M', '--match', action='store', required=False,
-                        help='Name of metric to be plotted, can be repeated multiple times')
+                        help='Name of metric with keyword to be plotted')
   parser.add_argument('-t', '--title', action='store', required=False, default='Metrics plot',
                         help='Title of the report')
+
   parser.add_argument('-r', '--regexes', action='store', type=pathlib.Path,
                       help='file containing additional regexes.')
   parser.epilog = 'The format of the regex file is one regex per line, without the timestamp part (will be added automatically). Each new regex needs to contain at least the following groups: ' + ','.join([MetricsName_Group_Name, MetricsValue_Group_Name]) + ' and this optional group: ' + MetricsUnit_Group_Name
@@ -165,13 +173,45 @@ def parse(logfile, stopWhenLoopDetected=False):
   results = dict()
   counters = dict()
   fullsize = os.path.getsize(logfile)
+  
+  if args.timezone is not None:
+    local_timezone = pytz.timezone(args.timezone) 
+    
+  if args.starttime is None:
+    starttime = None
+  else:
+    starttime = args.starttime.replace(tzinfo=pytz.utc).astimezone(local_timezone)
+  if args.endtime is None:
+    endtime = None
+  else:
+    endtime = args.endtime.replace(tzinfo=pytz.utc).astimezone(local_timezone)
+
   with zopen(logfile) as f:
     for line in f:
       line = line.rstrip('\n')
       for regex in regexes:
         record = regex_extract(line, regex)
         if record:
-          if Timestamp_Group_Name in record:
+          if Timestamp_Group_Name in record :
+            #convert timestamp
+            currentTimeStamp = convert_timestamp(record.get(Timestamp_Group_Name))
+           
+            # Replace with desired time zone
+            if args.timezone:
+                # convert zulu timezone to local timezone
+                currentTimeStamp = currentTimeStamp.replace(tzinfo=pytz.utc).astimezone(local_timezone)   
+              
+              
+     
+            if starttime is not None or endtime is not None:  
+              if starttime is not None and currentTimeStamp < starttime:
+                continue
+              if endtime is not None and currentTimeStamp > endtime:
+                continue
+
+            record[Timestamp_Group_Name] = currentTimeStamp.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3]+'Z'
+           
+           
             # Copy over all the values except Timestamp, which should be used as the key of the dictionary instead
             #First ensure that the metric has a name:
             if record.get(MetricsName_Group_Name):
@@ -229,15 +269,18 @@ def parse_and_plot(logfile, plotfile, args):
       #If the counter is selected, and the dataindex is not None, add the value to the corresponding list
       if dataindex is not None:
         data[dataindex].append({'date':timestamp, 'value':value})
+        
   for counterdata in data:
     #Calculate the max value for this counter data
     maxvalue = max([float(x.get('value')) for x in counterdata])
-    #And update the colours for each value in this counter:
+    #And update the colours and sizes for each value in this counter:
     for datapoint in counterdata:
       if float(datapoint.get('value')) < maxvalue:
         datapoint['colour'] = args.dotcolour
+        datapoint['size'] = 0.05
       else:
         datapoint['colour'] = args.maxcolour
+        datapoint['size'] = 0.05*5 #Make the max dot bigger than others
 
 
   thresholds = [ (statistics.mean(l) + 2* statistics.pvariance(l)) for l in [ [float(x.get('value')) for x in c] for c in data]]
