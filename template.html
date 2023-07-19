@@ -29,6 +29,20 @@
       .div-class{
         position: relative;
       }
+       div.tooltip {  
+      position: absolute;     
+      text-align: left;     
+      width: 70px;          
+      height: 28px;         
+      padding: 3px;       
+      font: 11px sans-serif;    
+      background: lightsteelblue; 
+      border: 0px;    
+      border-radius: 3px;     
+      pointer-events: none;     
+    }
+
+     
 
      
     </style>
@@ -53,8 +67,10 @@
       ]*/
         dotcolour = '@DOTCOLOUR@'
         linecolour = '@LINECOLOUR@'
+        radius = 0.25
 
         var parseTime = d3.timeParse("%Y-%m-%dT%H:%M:%S.%LZ");
+
        
         data.forEach(function (series) {
           series.forEach(function (d) {
@@ -95,6 +111,8 @@
 
       // Select the container element
       var container = d3.select("body");
+
+
 
       // Create div elements and set titles
      container.selectAll("div")
@@ -198,16 +216,33 @@
         var scatter = svg.append("g").attr("clip-path", "url(#clip)");
 
 
+        var tooltip = d3.select('body')
+          .append('div')
+          .attr('id', 'tooltip')
+          .style("transform", "translate(" + margin.left + "px," + margin.top + "px)")
+          .classed('hide', true);
+
+
+
         // draw cicrcles
         const gDot = scatter
 
           .selectAll("circle")
-          .data((d) => d)
-          .join("circle")
+        .data((d) => d)
+        .join("circle")
           .attr("cx", (d) =>x(d.date))
           .attr("cy", (d) => y(d.value))
-          .attr("r", 0.5)
+          .attr("r", d => d.size)
           .attr('fill', d => d.colour)  
+          
+        //tooltip ltext
+        gDot
+         .on("mousedown", mousedowned)
+         .append("title")
+              .text((d, i) => `Value: ${d.value}\nTime: ${d3.timeFormat("%Y-%m-%d %H:%M:%S")(d.date)}`);
+
+         
+          
 
           // draw lines
 
@@ -222,7 +257,7 @@
             .attr("x2", width)
             .attr("y2", d=>y(d))
             .style("stroke", linecolour)
-            .style("stroke-width", 0.25)
+            .style("stroke-width", radius)
             .style("stroke-dasharray", "2,2");
 
 
@@ -242,6 +277,16 @@
             .scaleExtent([-Infinity, Infinity])//update extent
             .on("zoom", zoomed)
         );
+
+         function mousedowned(event) {
+            d3.select(this).transition()
+                .attr("fill", "black")
+                .attr("r", radius * 2)
+              .transition()
+                .attr("fill", dotcolour)
+                .attr("r", radius);
+        }
+       
 
         function zoomed({ transform }) {
           gDot.attr("transform", transform);
