@@ -173,17 +173,20 @@ def parse(logfile, stopWhenLoopDetected=False):
   results = dict()
   counters = dict()
   fullsize = os.path.getsize(logfile)
-  
+
+  local_timezone = pytz.timezone('UTC')
+  starttime = None
+  endtime = None
+
+
   if args.timezone is not None:
     local_timezone = pytz.timezone(args.timezone) 
     
-  if args.starttime is None:
-    starttime = None
-  else:
+
+  if args.starttime is not None:
     starttime = args.starttime.replace(tzinfo=pytz.utc).astimezone(local_timezone)
-  if args.endtime is None:
-    endtime = None
-  else:
+
+  if args.endtime is not None:
     endtime = args.endtime.replace(tzinfo=pytz.utc).astimezone(local_timezone)
 
   with zopen(logfile) as f:
